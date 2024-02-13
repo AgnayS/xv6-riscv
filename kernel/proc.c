@@ -695,6 +695,7 @@ int
 clone(void(*func)(void*), void* arg, void* stack) {
 
   printf("func = %p, arg = %p, stack = %p\n",func, arg, stack);
+   
   return 1738;
 }
 
