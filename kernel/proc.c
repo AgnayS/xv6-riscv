@@ -686,6 +686,22 @@ procdump(void)
 uint64
 spoon(void* arg){
 
-  printf("In spoon system call with argument %p\n", arg);
+  printf("In [spoon] system call with argument %p\n", arg);
   return 0;
 }
+
+
+int
+clone(void(*func)(void*), void* arg, void* stack) {
+
+  printf("func = %p, arg = %p, stack = %p\n",func, arg, stack);
+  return 1738;
+}
+
+
+int 
+join(void** stack) {
+  printf("stack = %p\n", stack);
+  return 808;
+}
+
