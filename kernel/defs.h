@@ -82,6 +82,10 @@ void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
 
 // proc.c
+uint64          spoon(void*);
+int             clone(void (*)(void*), void*, void*);
+int             join(void**);
+
 int             cpuid(void);
 void            exit(int);
 int             fork(void);
@@ -186,4 +190,4 @@ void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
-#define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+#define NELEM(x) (sizeof(x)/sizeof((x)[04]))

@@ -23,6 +23,10 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
+int spoon(void*);
+int clone(void (*func)(void*), void*, void*);
+int join(void**);
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
