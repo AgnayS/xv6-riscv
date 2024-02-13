@@ -325,6 +325,42 @@ fork(void)
   return pid;
 }
 
+int
+clone(void)
+{
+  int i, pid;
+  struct proc *np;
+  struct proc *p = myproc();
+  if ((np = allocproc()) == 0){
+    return -1;
+  }
+  if (clonecopy(p->pagetable, np->pagetable, p->sz) < 0){
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+  np->sz = p->sz;
+  // Need different trapframe
+  //TODO
+  
+  for(i = 0; i < NOFILE; i++)
+    if(p->ofile[i])
+      np->ofile[i] = filedup(p->ofile[i]);
+  np->cwd = idup(p->cwd);
+
+  safestrcpy(np->name, p->name, sizeof(p->name));
+
+  pid = np->pid;
+  
+  release(&np->lock);
+  acquire(&wait_lock);
+  np->parent = p;
+  release(&wait_lock);
+
+  acquire(&np->lock);
+  np->state = RUNNABLE;
+  release(&np->lock);
+}
 // Pass p's abandoned children to init.
 // Caller must hold wait_lock.
 void
