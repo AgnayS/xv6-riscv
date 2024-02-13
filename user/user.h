@@ -23,6 +23,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
+// added to for threading
 int spoon(void*);
 int clone(void (*func)(void*), void*, void*);
 int join(void**);
@@ -43,3 +44,7 @@ void free(void*);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
+
+// added for threading
+int kthread_create(void(*)(void*), void*, void*);
+int kthread_join(void**);
