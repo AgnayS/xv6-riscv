@@ -326,7 +326,7 @@ fork(void)
 }
 
 int
-clone(void)
+clone(void(*func)(void*), void* arg, void* stack)
 {
   int i, pid;
   struct proc *np;
@@ -724,15 +724,6 @@ spoon(void* arg){
 
   printf("In [spoon] system call with argument %p\n", arg);
   return 0;
-}
-
-
-int
-clone(void(*func)(void*), void* arg, void* stack) {
-
-  printf("func = %p, arg = %p, stack = %p\n",func, arg, stack);
-   
-  return 1738;
 }
 
 
