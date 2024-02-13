@@ -136,6 +136,7 @@ UPROGS=\
 	$U/_spoon_test\
 	$U/_clone_test\
 	$U/_join_test\
+	$U/_xv6test\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
