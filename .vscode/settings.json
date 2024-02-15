@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "stat.h": "c",
+        "syscall.h": "c",
+        "fcntl.h": "c"
+    }
+}
