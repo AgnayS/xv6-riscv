@@ -334,7 +334,7 @@ clone(void(*func)(void*), void* arg, void* stack)
   if ((np = allocproc()) == 0){
     return -1;
   }
-  if (uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
+  if (clonecopy(p->pagetable, np->pagetable, p->sz) < 0){
     freeproc(np);
     release(&np->lock);
     return -1;
@@ -344,10 +344,10 @@ clone(void(*func)(void*), void* arg, void* stack)
   *(np->trapframe) = *(p->trapframe);
   np->trapframe->sp = (uint64)stack;
   np->trapframe->epc = (uint64)func;
-  np->trapframe->a0 = 0;
-  np->trapframe->a1 = (uint64)arg;
+  np->trapframe->a0 = (uint64)arg;
+  np->trapframe->a1 = 0;
 
-  //file descriptors
+  //----file descriptors----------------
   for(i = 0; i < NOFILE; i++)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
