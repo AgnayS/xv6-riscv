@@ -334,12 +334,11 @@ clone(void(*func)(void*), void* arg, void* stack)
   if ((np = allocproc()) == 0){
     return -1;
   }
-  //if (clonecopy(p->pagetable, np->pagetable, p->sz) < 0){
-  //  freeproc(np);
-  //  release(&np->lock);
-  //  return -1;
-  //}
-  np->pagetable = p->pagetable;	
+  if (uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }	
   np->sz = p->sz;
   // Need different trapframe
   *(np->trapframe) = *(p->trapframe);
