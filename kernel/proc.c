@@ -343,6 +343,8 @@ clone(void(*func)(void*), void* arg, void* stack)
   // Need different trapframe
   *(np->trapframe) = *(p->trapframe);
   np->trapframe->sp = (uint64)stack;
+  np->backupSP = (uint64)stack;
+  np->isThread = 1;
   np->trapframe->epc = (uint64)func;
   np->trapframe->a0 = (uint64)arg;
   np->trapframe->a1 = 0;
@@ -475,6 +477,12 @@ wait(uint64 addr)
     // Wait for a child to exit.
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
+}
+
+int 
+join(void** stack) {
+  printf("stack = %p\n", stack);
+  return 808;
 }
 
 // Per-CPU process scheduler.
@@ -733,10 +741,4 @@ spoon(void* arg){
   return 0;
 }
 
-
-int 
-join(void** stack) {
-  printf("stack = %p\n", stack);
-  return 808;
-}
 

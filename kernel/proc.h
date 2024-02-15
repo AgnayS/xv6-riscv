@@ -104,6 +104,6 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-  
+  uint64 backupSP;
   int isThread;                 //Set to 1 if the process is a thread
 };
