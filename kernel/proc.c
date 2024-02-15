@@ -271,6 +271,12 @@ growproc(int n)
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;
+  
+  for (p = proc; p < &proc[NPROC]; p++){
+    if (p->pthread == proc){
+      p->sz = sz;
+    } 
+  }
   return 0;
 }
 
@@ -340,6 +346,7 @@ clone(void(*func)(void*), void* arg, void* stack)
     return -1;
   }	
   np->sz = p->sz;
+  np->pthread = p;
   // Need different trapframe
   *(np->trapframe) = *(p->trapframe);
   np->trapframe->sp = (uint64)stack;
