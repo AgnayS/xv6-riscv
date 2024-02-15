@@ -148,7 +148,7 @@ memcpy(void *dst, const void *src, uint n)
 
 int
 kthread_create(void(*func)(void*), void* arg, void* stack) {
-  int tid = clone(func, arg, stack);a
+  int tid = clone(func, arg, stack);
   return (tid < 0) ? -1 : tid;
 }
 
@@ -156,7 +156,7 @@ kthread_create(void(*func)(void*), void* arg, void* stack) {
 int
 kthread_join(void** stack){
   int ret = join(stack);
-  return ret
+  return ret;
 }
 
 
