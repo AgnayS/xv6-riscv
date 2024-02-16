@@ -261,7 +261,7 @@ growproc(int n)
 {
   uint64 sz;
   struct proc *p = myproc();
-
+  struct proc *pp;
   sz = p->sz;
   if(n > 0){
     if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
@@ -272,9 +272,9 @@ growproc(int n)
   }
   p->sz = sz;
   
-  for (p = proc; p < &proc[NPROC]; p++){
-    if (p->pthread == proc){
-      p->sz = sz;
+  for (pp = proc; pp < &proc[NPROC]; pp++){
+    if (pp->parent == p){
+      pp->sz = sz;
     } 
   }
   return 0;
