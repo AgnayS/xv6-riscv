@@ -128,6 +128,7 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+  p->threadCount = 1;  //added reference count for threads
 
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0)
@@ -164,12 +165,12 @@ freeproc(struct proc *p)
   if (p->trapframe)
     kfree((void *)p->trapframe);
   p->trapframe = 0;
-  if (p->isParentThread || list_empty(&p->parent->thread_list)) { // Only free shit for the parent
-    if (p->pagetable) {                                         // or when our list is empty
+  if(p->isParentThread ==1){
+    if (p->pagetable) {                                     
       proc_freepagetable(p->pagetable, p->sz);
-      p->pagetable = 0;
     }
-  }
+    p->pagetable = 0;
+  } 
   p->sz = 0;
   p->pid = 0;
   p->parent = 0;
@@ -178,12 +179,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
-
-  if (!p->isParentThread) { //also delete from the list if done.
-    list_del_init(&p->thread_list);
-  }
 }
-
 
 // Create a user page table for a given process, with no user memory,
 // but with trampoline and trapframe pages.
@@ -364,8 +360,14 @@ int clone(void (*func)(void *), void *arg, void *stack)
     release(&np->lock);
     return -1;
   }
+
+  acquire(&p->lock);
+  p->threadCount++;  
+  release(&p->lock);
+
   np->sz = p->sz;
   np->parent = p;
+
 
   *(np->trapframe) = *(p->trapframe);
   np->trapframe->sp = (uint64)stack;
@@ -424,6 +426,10 @@ void exit(int status)
 
   if (p == initproc)
     panic("init exiting");
+
+  acquire(&wait_lock);
+  p->threadCount--;  //decrement the thread count if we exit regardless of whether it is a thread or a process
+  release(&wait_lock);
 
   // Close all open files.
   for (int fd = 0; fd < NOFILE; fd++)
@@ -544,7 +550,18 @@ join(int pid) {
           // make sure the child isn't still in exit() or swtch().
           acquire(&pp->lock);
 
-          //freeproc(pp);
+          acquire(&pp->parent->lock);
+          pp->parent->threadCount--;
+          release(&pp->parent->lock);
+
+          
+          if(pp->parent->threadCount == 0){  // Only free the parent if no threads are left
+            freeproc(pp->parent);
+          }
+
+          //take care to free the thread AFTER the parent 
+          freeproc(pp);
+    
           release(&pp->lock);
           release(&wait_lock);
           return pid;

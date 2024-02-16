@@ -3,6 +3,8 @@
         "stat.h": "c",
         "syscall.h": "c",
         "fcntl.h": "c",
-        "*.inc": "c"
+        "*.inc": "c",
+        "mutex": "c",
+        "shared_mutex": "c"
     }
 }

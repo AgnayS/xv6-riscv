@@ -111,4 +111,5 @@ struct proc {
   char name[16];               // Process name (debugging)
 
   int isParentThread;          //Set to 1 for og process
+  int threadCount;                //Reference count for threads
 };
