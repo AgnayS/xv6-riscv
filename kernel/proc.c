@@ -499,7 +499,7 @@ join(int pid) {
         if ((pp->state == ZOMBIE) && (pp->pid == pid)) {
           // make sure the child isn't still in exit() or swtch().
           acquire(&pp->lock);
-          //freeproc(pp);
+          freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
           return pid;
