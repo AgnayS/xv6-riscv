@@ -28,8 +28,7 @@ int main() {
 
     kthread_create(thread_function, &arg, stack);
 
-    void* join_stack = 0;
-    kthread_join(&join_stack);
+    kthread_join(0);
 
     printf("Thread finished execution\n");
 

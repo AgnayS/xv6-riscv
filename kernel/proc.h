@@ -28,6 +28,10 @@ struct cpu {
 
 extern struct cpu cpus[NCPU];
 
+struct list_head {
+  struct list_head *next, *prev;
+}; 
+
 // per-process data for the trap handling code in trampoline.S.
 // sits in a page by itself just under the trampoline page in the
 // user page table. not specially mapped in the kernel page table.
@@ -83,6 +87,8 @@ enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
 struct proc {
+  struct list_head thread_list;
+
   struct spinlock lock;
 
   // p->lock must be held when using these:
@@ -94,7 +100,6 @@ struct proc {
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
-  struct proc *pthread;
   // these are private to the process, so p->lock need not be held.
   uint64 kstack;               // Virtual address of kernel stack
   uint64 sz;                   // Size of process memory (bytes)
@@ -105,6 +110,5 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-  uint64 backupSP;
-  int isThread;                 //Set to 1 if the process is a thread
+  int isParentThread;                 //Set to 1 for og process
 };

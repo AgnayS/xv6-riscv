@@ -25,8 +25,8 @@ int uptime(void);
 
 // added to for threading
 int spoon(void*);
-int clone(void (*func)(void*), void*, void*);
-int join(void**);
+int clone(void (*)(void*), void*, void*);
+int join(uint64);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -47,4 +47,4 @@ void *memcpy(void *, const void *, uint);
 
 // added for threading
 int kthread_create(void(*)(void*), void*, void*);
-int kthread_join(void**);
+int kthread_join(uint64);

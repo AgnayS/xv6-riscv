@@ -154,7 +154,7 @@ kthread_create(void(*func)(void*), void* arg, void* stack) {
 
 
 int
-kthread_join(void** stack){
+kthread_join(uint64 stack){
   int ret = join(stack);
   return ret;
 }
