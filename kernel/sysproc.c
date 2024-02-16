@@ -119,7 +119,7 @@ sys_join(void){
 
   argaddr(0,&stack);
 
-  return join(stack);
+  return join((int) stack);
 }
 
 

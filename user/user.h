@@ -47,4 +47,4 @@ void *memcpy(void *, const void *, uint);
 
 // added for threading
 int kthread_create(void(*)(void*), void*, void*);
-int kthread_join(uint64);
+int kthread_join(int);

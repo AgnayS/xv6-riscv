@@ -85,7 +85,7 @@ void            printfinit(void);
 // proc.c
 uint64          spoon(void*);
 int             clone(void (*)(void*), void*, void*);
-int             join(uint64);
+int             join(int);
 
 int             cpuid(void);
 void            exit(int);

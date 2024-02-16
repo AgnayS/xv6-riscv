@@ -110,5 +110,5 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-  int isParentThread;                 //Set to 1 for og process
+  int isParentThread;          //Set to 1 for og process
 };
