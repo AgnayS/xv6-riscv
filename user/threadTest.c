@@ -19,20 +19,27 @@ void thread_function(void* arg) {
 
 int main() {
     int arg = 123;
-    void* stack = malloc(PGSIZE);
-
+    int arg2 = 456;
+    void* stack = malloc(PGSIZE) + PGSIZE;
+    void* stack2 = malloc(PGSIZE) + PGSIZE;
     if (!stack) {
         printf("Failed to allocate stack for the thread\n");
         exit(1);
     }
+    if (!stack2){
+        printf("Failed to allocate stack for the thread\n");
+	exit(1);
+    }
 
     kthread_create(thread_function, &arg, stack);
-
+    kthread_join(0);
+    kthread_create(thread_function, &arg2, stack2);
     kthread_join(0);
 
-    printf("Thread finished execution\n");
+    printf("Threads finished execution\n");
 
     free(stack);
+    free(stack2);
     exit(0);
 }
 

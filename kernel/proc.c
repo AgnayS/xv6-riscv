@@ -55,6 +55,7 @@ void procinit(void)
   {
     initlock(&p->lock, "proc");
     p->state = UNUSED;
+    //p->isParentThread = 1;
     p->kstack = KSTACK((int)(p - proc));
   }
 }
@@ -545,7 +546,7 @@ int join(uint64 addr)
       { // Check if tp is a child thread of p.
         acquire(&tp->lock);
         havekids = 1; // we found a child thread
-
+        
         if (tp->state == ZOMBIE)
         {
           // the child thread is ded
@@ -560,10 +561,12 @@ int join(uint64 addr)
           }
 
           // clean up the thread and we have added logic for deleting it in freeproc
-          freeproc(tp);
+	  //printf("pid = %d\n", tpid);
+          //freeproc(tp);
           release(&tp->lock);
           release(&wait_lock);
-          return pid;
+	  printf("Runs before returning in join and pid = %d\n", pid);
+	  return pid;
         }
 
         release(&tp->lock);
@@ -577,8 +580,11 @@ int join(uint64 addr)
       return -1;
     }
     // waiting for the child to exit
-    sleep(p, &wait_lock);
+    printf("Before sleep in join\n");
+    sleep(p , &wait_lock);
+    printf("After sleep in join\n");
   }
+  return 0;
 }
 
 // Per-CPU process scheduler.
