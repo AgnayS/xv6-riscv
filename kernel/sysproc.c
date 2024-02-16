@@ -115,11 +115,11 @@ sys_clone(void){
 uint64
 sys_join(void){
 
-  uint64 stack;
+  uint64 tid;
 
-  argaddr(0,&stack);
+  argaddr(0,&tid);
 
-  return join((void**) stack);
+  return join((int) tid);
 }
 
 
