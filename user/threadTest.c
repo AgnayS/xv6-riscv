@@ -13,24 +13,39 @@
 
 
 void thread_function(void* arg) {
-    //printf("Hello from the thread! Arg: %d\n", *(int*)arg);
-    return;
+    printf("Hello from the thread! Arg: %d\n", *(int*)arg);
+    exit(0);
 }
 
 int main() {
     int arg = 123;
-    void* stack = malloc(PGSIZE) + PGSIZE;
+    // void* stack = malloc(PGSIZE) + PGSIZE;
 
-    if (!stack) {
-        printf("Failed to allocate stack for the thread\n");
-        exit(1);
+    // if (!stack) {
+    //     printf("Failed to allocate stack for the thread\n");
+    //     exit(1);
+    // }
+
+    int i;
+    int tids[10];
+    void* stacks[10];
+
+    for (i = 0; i < 10; i++) {
+      stacks[i] = malloc(PGSIZE) + PGSIZE;
     }
 
-    int tid = kthread_create(thread_function, &arg, stack);
-    kthread_join(tid);
+    for (i = 0; i < 10; i++)
+    {
+      tids[i] = kthread_create(thread_function, &arg, stacks[i]);
+    }
+
+    for (i = 0; i < 10; i++) {
+      kthread_join(tids[i]);
+    }
+
     printf("Thread finished execution\n");
 
-    free(stack);
+    //free(stack);
     exit(0);
 }
 

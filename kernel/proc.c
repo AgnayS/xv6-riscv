@@ -346,7 +346,7 @@ clone(void(*func)(void*), void* arg, void* stack)
     return -1;
   }	
   np->sz = p->sz;
-  np->pthread = p;
+  //np->pthread = p;
   // Need different trapframe
   *(np->trapframe) = *(p->trapframe);
   np->trapframe->sp = (uint64)stack;
@@ -495,22 +495,17 @@ join(int pid) {
 
   for (;;) {
     for (pp = proc; pp < &proc[NPROC]; pp++) {
-      if ((pp->state == ZOMBIE) && (pp->pid == pid)) {
-        // make sure the child isn't still in exit() or swtch().
-        printf("Here with pid %d pp->pid %d myproc->pid = %d\n", pid, pp->pid, p->pid);
-        acquire(&pp->lock);
-        freeproc(pp);
-        release(&pp->lock);
-        release(&wait_lock);
-        return pid;
-      } else if ((pp->state =! ZOMBIE) && (pp->pid == pid)) {
-        while ((pp->state =! ZOMBIE));
-        
-      }
+        if ((pp->state == ZOMBIE) && (pp->pid == pid)) {
+          // make sure the child isn't still in exit() or swtch().
+          acquire(&pp->lock);
+          // freeproc(pp);
+          release(&pp->lock);
+          release(&wait_lock);
+          return pid;
+        }
     }
-    // Wait for a child to exit.
-    printf("509\n");
-    //sleep(p, &wait_lock);  // DOC: wait-sleep
+    printf("pp->pid = %d\n", pp->pid);
+    sleep(p, &wait_lock);  // DOC: wait-sleep
   }
   return 808;
 }
