@@ -256,27 +256,28 @@ userinit(void)
 
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
+//
+
+//
 int
 growproc(int n)
 {
   uint64 sz;
   struct proc *p = myproc();
-  struct proc *pp;
+  struct proc *pp; 
   sz = p->sz;
   if(n > 0){
     if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
       return -1;
+    }
+    for (pp = proc; pp < &proc[NPROC]; pp++) {
+      threadmalloc(pp->pagetable, sz, sz + n, PTE_W, data->mem);
     }
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;
   
-  for (pp = proc; pp < &proc[NPROC]; pp++){
-    if (pp->parent == p){
-      pp->sz = sz;
-    } 
-  }
   return 0;
 }
 

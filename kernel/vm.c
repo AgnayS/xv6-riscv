@@ -222,12 +222,12 @@ uvmfirst(pagetable_t pagetable, uchar *src, uint sz)
 
 // Allocate PTEs and physical memory to grow process from oldsz to
 // newsz, which need not be page aligned.  Returns new size or 0 on error.
+
 uint64
 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
 {
   char *mem;
   uint64 a;
-
   if(newsz < oldsz)
     return oldsz;
 
@@ -240,6 +240,24 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
     }
     memset(mem, 0, PGSIZE);
     if(mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_R|PTE_U|xperm) != 0){
+      kfree(mem);
+      uvmdealloc(pagetable, a, oldsz);
+      return 0;
+    }
+  }
+  return newsz;
+}
+
+uint64
+threadalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm, uint64 mem)
+{
+  uint64 a;
+  if (newsz < oldsz)
+    return oldsz;
+  oldsz = PGROUNDUP(oldsz);
+  for (a = oldsz; a < newsz; a += PGSIZE){
+    //memset(mem, 0, PGSIZE);
+    if(mappages(pagetable, a, PGSIZE, mem, PTE_R|PTE_U|xperm) != 0){
       kfree(mem);
       uvmdealloc(pagetable, a, oldsz);
       return 0;
