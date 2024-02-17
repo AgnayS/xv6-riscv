@@ -267,9 +267,6 @@ int growproc(int n)
 {
   uint64 sz;
   struct proc *p = myproc();
-  struct proc *pp;
-  struct list_head *pointer;
-
   sz = p->sz;
   if (n > 0)
   {
@@ -283,13 +280,6 @@ int growproc(int n)
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;
-
-  pointer = &p->thread_list;
-  while ((pointer = pointer->next) != &p->thread_list)
-  {
-    pp = (struct proc *)pointer;
-    pp->sz = sz;
-  }
   return 0;
 }
 
@@ -505,7 +495,7 @@ int wait(uint64 addr)
           // Found one.
           pid = pp->pid;
           if (addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
-                                   sizeof(pp->xstate)) < 0)
+                                  sizeof(pp->xstate)) < 0)
           {
             release(&pp->lock);
             release(&wait_lock);

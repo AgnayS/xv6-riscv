@@ -137,6 +137,13 @@ UPROGS=\
 	$U/_spoon_test\
 	$U/_threadTest\
 	$U/_mem_test\
+	$U/_stacks_test\
+	$U/_access_arg_test\
+	$U/_struct_test\
+	$U/_globals_test\
+	$U/_overlap_stacks_test\
+	$U/_corrupt_test\
+	$U/_no_join_test\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

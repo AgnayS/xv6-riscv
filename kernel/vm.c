@@ -281,11 +281,10 @@ uint64 thread_alloc(struct proc* p, uint64 oldsz, uint64 newsz, int xperm) {
                 uvmdealloc(pp->pagetable, a, oldsz);
                 return 0;
             }
+            pp->sz = newsz;
             pointer = pointer->next;
         } while (pointer != &p->thread_list);
     }
-
-    
     return newsz;
 }
 
