@@ -22,6 +22,6 @@ int main(int argc, char *argv[])
     void *st_1 = create_stack(PGSIZE);
 
     kthread_create(func, NULL, st_1);
-
+    free(st_1 - PGSIZE);
     exit(0);
 }

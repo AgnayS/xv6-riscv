@@ -37,7 +37,8 @@ int main(int argc, char *argv[])
     int mem_tid = kthread_create(add_mem, 0, mem_sp);
 
     kthread_join(sleep_tid);
+    free(sleep_sp - PGSIZE);
     kthread_join(mem_tid);
-
+    free(mem_sp - PGSIZE);
     exit(0);
 }

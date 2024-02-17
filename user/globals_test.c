@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     for (i = 0; i < NUM_THREADS; i++)
     {
         kthread_join(tids[i]);
+        free(stacks[i]-PGSIZE);
     }
 
     printf("Final val of num_spawned = %d and expected is %d\n", num_spawned, NUM_THREADS);

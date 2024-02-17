@@ -33,9 +33,11 @@ int main(int argc, char *argv[])
 
     int tid_1 = kthread_create(func_1, NULL, st_1);
     kthread_join(tid_1);
+    free(st_1 - PGSIZE);
 
     int tid_2 = kthread_create(func_2, NULL, st_2);
     kthread_join(tid_2);
+    free(st_2 - PGSIZE);
 
     exit(0);
 }

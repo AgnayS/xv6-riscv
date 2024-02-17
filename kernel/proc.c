@@ -267,8 +267,6 @@ int growproc(int n)
 {
   uint64 sz;
   struct proc *p = myproc();
-  struct proc *pp;
-  struct list_head *pointer;
   sz = p->sz;
   if (n > 0)
   {
@@ -282,12 +280,6 @@ int growproc(int n)
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;
-  pointer = &p->thread_list;
-  while ((pointer = pointer->next) != &p->thread_list)
-  {
-    pp = (struct proc *)pointer;
-    pp->sz = sz;
-  }
   return 0;
 }
 
