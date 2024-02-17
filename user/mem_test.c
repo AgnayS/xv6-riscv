@@ -9,6 +9,7 @@ void add_mem(void *arg)
 {
     np_var = (int *)sbrk(PGSIZE);
     *np_var = 404;
+    printf("The value in the new mem is: %p\n", np_var);
     printf("set value successfully...\n");
     exit(0);
 }

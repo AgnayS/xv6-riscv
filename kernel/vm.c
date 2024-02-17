@@ -272,18 +272,20 @@ uint64 thread_alloc(struct proc* p, uint64 oldsz, uint64 newsz, int xperm) {
         }
         memset(mem, 0, PGSIZE);
 
-        
-        struct list_head* iterator = &p->thread_list;
+        struct list_head* pointer = &p->thread_list;
+
         do {
-            pp = (struct proc *)iterator;
+            pp = (struct proc *)pointer;
             if (mappages(pp->pagetable, a, PGSIZE, (uint64)mem, PTE_R | PTE_W | PTE_U | xperm) != 0) {
                 kfree(mem);
                 uvmdealloc(pp->pagetable, a, oldsz);
                 return 0;
             }
-            iterator = iterator->next;
-        } while (iterator != &p->thread_list);
+            pointer = pointer->next;
+        } while (pointer != &p->thread_list);
     }
+
+    
     return newsz;
 }
 

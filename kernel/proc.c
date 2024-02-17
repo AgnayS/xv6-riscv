@@ -6,7 +6,6 @@
 #include "proc.h"
 #include "defs.h"
 
-
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -127,8 +126,9 @@ allocproc(void)
 
 found:
   p->pid = allocpid();
-  p->state = USED;  //added reference count for threads
-
+  p->state = USED; // added reference count for threads
+  p->isParentThread = 1;
+  init_list_head(&p->thread_list);
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0)
   {
@@ -161,10 +161,10 @@ found:
 static void
 freeproc(struct proc *p)
 {
-  if(p->trapframe)
-    kfree((void*)p->trapframe);
+  if (p->trapframe)
+    kfree((void *)p->trapframe);
   p->trapframe = 0;
-  if(p->pagetable)
+  if (p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   p->pagetable = 0;
   p->sz = 0;
@@ -175,7 +175,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
-  if(p->isParentThread == 0)
+  if (p->isParentThread == 0)
     list_del_init(&p->thread_list);
 }
 
@@ -196,7 +196,7 @@ proc_pagetable(struct proc *p)
   // only the supervisor uses it, on the way
   // to/from user space, so not PTE_U.
   if (mappages(pagetable, TRAMPOLINE, PGSIZE,
-              (uint64)trampoline, PTE_R | PTE_X) < 0)
+               (uint64)trampoline, PTE_R | PTE_X) < 0)
   {
     uvmfree(pagetable, 0);
     return 0;
@@ -205,7 +205,7 @@ proc_pagetable(struct proc *p)
   // map the trapframe page just below the trampoline page, for
   // trampoline.S.
   if (mappages(pagetable, TRAPFRAME, PGSIZE,
-              (uint64)(p->trapframe), PTE_R | PTE_W) < 0)
+               (uint64)(p->trapframe), PTE_R | PTE_W) < 0)
   {
     uvmunmap(pagetable, TRAMPOLINE, 1, 0);
     uvmfree(pagetable, 0);
@@ -263,8 +263,7 @@ void userinit(void)
 
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
-int
-growproc(int n)
+int growproc(int n)
 {
   uint64 sz;
   struct proc *p = myproc();
@@ -272,17 +271,22 @@ growproc(int n)
   struct list_head *pointer;
 
   sz = p->sz;
-  if(n > 0){
-    if((sz = thread_alloc(p, sz, sz + n, PTE_W)) == 0) { //passd the entire process instead of just the pagetable
+  if (n > 0)
+  {
+    if ((sz = thread_alloc(p, sz, sz + n, PTE_W)) == 0)
+    { // passd the entire process instead of just the pagetable
       return -1;
     }
-  } else if(n < 0){
+  }
+  else if (n < 0)
+  {
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;
 
   pointer = &p->thread_list;
-  while ((pointer = pointer->next) != &p->thread_list) {
+  while ((pointer = pointer->next) != &p->thread_list)
+  {
     pp = (struct proc *)pointer;
     pp->sz = sz;
   }
@@ -326,8 +330,6 @@ int fork(void)
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
-
-
   pid = np->pid;
 
   release(&np->lock);
@@ -337,8 +339,6 @@ int fork(void)
   release(&wait_lock);
 
   acquire(&np->lock);
-  np->isParentThread = 1;
-  init_list_head(&np->thread_list);
   np->state = RUNNABLE;
   release(&np->lock);
 
@@ -368,15 +368,14 @@ int clone(void (*func)(void *), void *arg, void *stack)
   np->sz = p->sz;
   np->parent = p;
 
-
   *(np->trapframe) = *(p->trapframe);
   np->trapframe->sp = (uint64)stack;
   np->trapframe->epc = (uint64)func;
   np->trapframe->a0 = (uint64)arg;
   np->isParentThread = 0;
 
-  init_list_head(&np->thread_list);
-  list_add_tail(&np->parent->thread_list, &p->thread_list);
+  list_add_tail(&np->parent->thread_list, &np->thread_list);
+                          
 
   //----file descriptors----------------
   for (i = 0; i < NOFILE; i++)
@@ -448,17 +447,18 @@ void exit(int status)
   if (p->isParentThread == 0)
     list_del_init(&p->thread_list);
   else if (p->isParentThread == 1)
-  { // cleanup all the threads that belong to main
-    while (!list_empty(&p->thread_list)) //Good link: https://www.kernel.org/doc/html/v4.19/core-api/kernel-api.html
+  {                                      // cleanup all the threads that belong to main
+    while (!list_empty(&p->thread_list)) // Good link: https://www.kernel.org/doc/html/v4.19/core-api/kernel-api.html
     {
       tp = (struct proc *)p->thread_list.next;
       list_del_init(&tp->thread_list);
       freeproc(tp);
     }
   }
-  else{
+  else
+  {
     panic("exit: isParentThread is not 0 or 1");
-    }
+  }
 
   // Give any children to init.
   reparent(p);
@@ -505,7 +505,7 @@ int wait(uint64 addr)
           // Found one.
           pid = pp->pid;
           if (addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
-                                  sizeof(pp->xstate)) < 0)
+                                   sizeof(pp->xstate)) < 0)
           {
             release(&pp->lock);
             release(&wait_lock);
@@ -528,31 +528,34 @@ int wait(uint64 addr)
     }
 
     // Wait for a child to exit.
-    sleep(p, &wait_lock); // DOC: wait-sleep
+    sleep(p, &wait_lock);
   }
 }
 
-int 
-join(int pid) {
+int join(int pid)
+{
 
   struct proc *pp;
   struct proc *p = myproc();
 
   acquire(&wait_lock);
 
-  for (;;) {
-    for (pp = proc; pp < &proc[NPROC]; pp++) {
-        if ((pp->state == ZOMBIE) && (pp->pid == pid)) {
-          // make sure the child isn't still in exit() or swtch().
-          acquire(&pp->lock);
-          freeproc(pp);
-          release(&pp->lock);
-          release(&wait_lock);
-          return pid;
-        }
+  for (;;)
+  {
+    for (pp = proc; pp < &proc[NPROC]; pp++)
+    {
+      if ((pp->state == ZOMBIE) && (pp->pid == pid))
+      {
+        // make sure the child isn't still in exit() or swtch().
+        acquire(&pp->lock);
+        freeproc(pp);
+        release(&pp->lock);
+        release(&wait_lock);
+        return pid;
+      }
     }
     printf("pp->pid = %d\n", pp->pid);
-    sleep(p, &wait_lock);  // DOC: wait-sleep
+    sleep(p, &wait_lock); // DOC: wait-sleep
   }
   return 808;
 }
