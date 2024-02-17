@@ -5,6 +5,7 @@
         "fcntl.h": "c",
         "*.inc": "c",
         "mutex": "c",
-        "shared_mutex": "c"
+        "shared_mutex": "c",
+        "param.h": "c"
     }
 }

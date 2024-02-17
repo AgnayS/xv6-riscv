@@ -136,6 +136,7 @@ UPROGS=\
 	$U/_xv6test\
 	$U/_spoon_test\
 	$U/_threadTest\
+	$U/_mem_test\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

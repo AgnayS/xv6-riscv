@@ -127,8 +127,7 @@ allocproc(void)
 
 found:
   p->pid = allocpid();
-  p->state = USED;
-  p->threadCount = 1;  //added reference count for threads
+  p->state = USED;  //added reference count for threads
 
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0)
@@ -162,15 +161,12 @@ found:
 static void
 freeproc(struct proc *p)
 {
-  if (p->trapframe)
-    kfree((void *)p->trapframe);
+  if(p->trapframe)
+    kfree((void*)p->trapframe);
   p->trapframe = 0;
-  if(p->isParentThread ==1){
-    if (p->pagetable) {                                     
-      proc_freepagetable(p->pagetable, p->sz);
-    }
-    p->pagetable = 0;
-  } 
+  if(p->pagetable)
+    proc_freepagetable(p->pagetable, p->sz);
+  p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
   p->parent = 0;
@@ -179,6 +175,8 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  if(p->isParentThread == 0)
+    list_del_init(&p->thread_list);
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -271,20 +269,22 @@ growproc(int n)
   uint64 sz;
   struct proc *p = myproc();
   struct proc *pp;
+  struct list_head *pointer;
+
   sz = p->sz;
   if(n > 0){
-    if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
+    if((sz = thread_alloc(p, sz, sz + n, PTE_W)) == 0) { //passd the entire process instead of just the pagetable
       return -1;
     }
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;
-  
-  for (pp = proc; pp < &proc[NPROC]; pp++){
-    if (pp->parent == p){
-      pp->sz = sz;
-    } 
+
+  pointer = &p->thread_list;
+  while ((pointer = pointer->next) != &p->thread_list) {
+    pp = (struct proc *)pointer;
+    pp->sz = sz;
   }
   return 0;
 }
@@ -326,8 +326,7 @@ int fork(void)
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
-  np->isParentThread = 1;
-  init_list_head(&np->thread_list);
+
 
   pid = np->pid;
 
@@ -338,6 +337,8 @@ int fork(void)
   release(&wait_lock);
 
   acquire(&np->lock);
+  np->isParentThread = 1;
+  init_list_head(&np->thread_list);
   np->state = RUNNABLE;
   release(&np->lock);
 
@@ -362,7 +363,6 @@ int clone(void (*func)(void *), void *arg, void *stack)
   }
 
   acquire(&p->lock);
-  p->threadCount++;  
   release(&p->lock);
 
   np->sz = p->sz;
@@ -427,10 +427,6 @@ void exit(int status)
   if (p == initproc)
     panic("init exiting");
 
-  acquire(&wait_lock);
-  p->threadCount--;  //decrement the thread count if we exit regardless of whether it is a thread or a process
-  release(&wait_lock);
-
   // Close all open files.
   for (int fd = 0; fd < NOFILE; fd++)
   {
@@ -457,7 +453,7 @@ void exit(int status)
     {
       tp = (struct proc *)p->thread_list.next;
       list_del_init(&tp->thread_list);
-      kill(tp->pid);
+      freeproc(tp);
     }
   }
   else{
@@ -549,19 +545,7 @@ join(int pid) {
         if ((pp->state == ZOMBIE) && (pp->pid == pid)) {
           // make sure the child isn't still in exit() or swtch().
           acquire(&pp->lock);
-
-          acquire(&pp->parent->lock);
-          pp->parent->threadCount--;
-          release(&pp->parent->lock);
-
-          
-          if(pp->parent->threadCount == 0){  // Only free the parent if no threads are left
-            freeproc(pp->parent);
-          }
-
-          //take care to free the thread AFTER the parent 
           freeproc(pp);
-    
           release(&pp->lock);
           release(&wait_lock);
           return pid;
