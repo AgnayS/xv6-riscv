@@ -1,0 +1,5 @@
+All of us deserve an A in this project as we worked tirelessly to integrate threads to work as lightweight processes without defining its own type.
+We have reused a lot of the core functionality from processses within the same function instead of creating new thread specific functions.
+We also reused reference counting from our COW lab that gave us cleaner code as we didn't have to maintain reference counts in proc.cleaner
+Our list.c implementation also extends the linux kernel's and contains an isEmpty function that allows for cleaner code while traversing said list.
+Our tests, although simple, extensively stress test threads and also showcase thread creation and use lucidly.
