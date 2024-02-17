@@ -55,6 +55,7 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
+      p->isThread = -1;
   }
 }
 
@@ -499,13 +500,12 @@ join(int pid) {
         if ((pp->state == ZOMBIE) && (pp->pid == pid)) {
           // make sure the child isn't still in exit() or swtch().
           acquire(&pp->lock);
-          // freeproc(pp);
+          freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
           return pid;
         }
     }
-    printf("pp->pid = %d\n", pp->pid);
     sleep(p, &wait_lock);  // DOC: wait-sleep
   }
   return 808;
